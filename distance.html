@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Google Maps JavaScript API v3 Example: Geocoding Simple</title>
+    <style>
+        html, body {
+          height: 100%;
+          margin: 0;
+          padding: 0;
+        }
+
+        #map_canvas {
+          height: 100%;
+        }
+
+        @media print {
+          html, body {
+            height: auto;
+          }
+
+          #map_canvas {
+            height: 650px;
+          }
+        }
+    </style>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=places&sensor=false"></script>
+    <script type="text/javascript">
+
+        var geocoder;
+        var map;
+        var directionsService;
+        var directionsDisplay;
+
+        function initialize() {
+            geocoder = new google.maps.Geocoder();
+            var latlng = new google.maps.LatLng(-6.211544, 106.84517200000005);
+            var mapOptions = {
+                zoom: 12,
+                center: latlng,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            }
+            map = new google.maps.Map(document.getElementById('map_canvas'), mapOptions);
+
+            var autoCompleteOptions = {
+                types: ['geocode'],
+                componentRestrictions: {country: 'ID'}
+            };
+
+            var originBox = document.getElementById('origin');
+            var destinationBox = document.getElementById('destination');
+            var originAutoComplete = new google.maps.places.Autocomplete(originBox, autoCompleteOptions);
+            var destinationAutoComplete = new google.maps.places.Autocomplete(destinationBox, autoCompleteOptions);
+        }
+
+        function codeAddress() {
+
+            var originAddress = document.getElementById('origin').value;
+            var distanceLength = 0;
+            var originLoc, originLat, originLng;
+            var destinationLoc, destinationLat, destinationLng;
+            var destinationAddress = document.getElementById('destination').value;
+            var distanceBlock = document.getElementById('distance');
+            var priceBlock = document.getElementById('price');
+
+            if(typeof directionsDisplay != 'undefined' && directionsDisplay != null) {
+                directionsDisplay.setMap(null);
+                directionsDisplay = null;
+            }
+
+            var directionsOptions = {
+                map: map
+            }
+
+            map.setCenter(new google.maps.LatLng(-6.211544, 106.84517200000005));
+
+            directionsService = new google.maps.DirectionsService();
+            directionsDisplay = new google.maps.DirectionsRenderer();
+            directionsDisplay.setOptions(directionsOptions);
+
+            geocoder.geocode({ 'address': originAddress }, function (originResults, originStatus) {
+                if (originStatus == google.maps.GeocoderStatus.OK) {
+
+                    originLoc = originResults[0].geometry.location;
+                    originLat = originResults[0].geometry.location.lat();
+                    originLng = originResults[0].geometry.location.lng();
+
+                    geocoder.geocode({ 'address': destinationAddress }, function (destinationResults, destinationStatus) {
+                        if (destinationStatus == google.maps.GeocoderStatus.OK) {
+
+                            destinationLoc = destinationResults[0].geometry.location;
+                            destinationLat = destinationResults[0].geometry.location.lat();
+                            destinationLng = destinationResults[0].geometry.location.lng();
+
+                            var request = {
+                                origin: originLoc,
+                                destination: destinationLoc,
+                                avoidHighways: true,
+                                avoidTolls: true,
+                                travelMode: google.maps.DirectionsTravelMode.DRIVING
+                            };
+
+                            directionsService.route(request, function(response, status) {
+                                if (status == google.maps.DirectionsStatus.OK) {
+
+                                    distanceLength = 0;
+                                    var routePaths = response.routes[0].legs;
+                                    for(var indexPath = 0; indexPath < routePaths.length; indexPath++)
+                                    {
+                                        distanceLength += routePaths[indexPath].distance['value'] / 1000;
+                                    }
+
+                                    var targetDistance = Math.ceil(distanceLength);
+									
+                                    directionsDisplay.setDirections(response);
+
+                                    distanceBlock.innerHTML = 'Jarak: ' + targetDistance + ' KM';
+                                    priceBlock.innerHTML = 'Lokasi awal: ' + originLat + ',' + originLng + ' ';
+                                    priceBlock.innerHTML += 'Lokasi akhir: ' + destinationLat + ',' + destinationLng;
+                                }
+                            });
+
+                        } else {
+                            alert('Geocode was not successful for the following reason: ' + status);
+                        }
+                    });
+                } else {
+                    alert('Geocode was not successful for the following reason: ' + status);
+                }
+            });
+        }
+
+    </script>
+  </head>
+  <body onload="initialize()">
+    <div>
+        <input id="origin" type="text" placeholder="Masukkan Lokasi Asal">
+        <input id="destination" type="text" placeholder="Masukkan Lokasi Tujuan">
+        <input type="button" value="Geocode" onclick="codeAddress()">
+        <div id="distance" style="display: inline-block"></div>
+        <div id="price" style="display: inline-block"></div>
+    </div>
+    <div id="map_canvas" style="height:90%;top:30px"></div>
+  </body>
+</html>
