@@ -200,8 +200,12 @@
         if (query.length < 3) return [];
         const params = new URLSearchParams({ q: query, format: 'json', limit: '5' });
         const res = await fetch(`${NOMINATIM_URL}?${params}`, {
-            headers: { 'Accept-Language': 'en' }
+            headers: {
+                'Accept-Language': 'en',
+                'User-Agent': 'whats-my-lonlat (https://github.com/necrophidia/whats-my-lonlat)',
+            }
         });
+        if (!res.ok) return [];
         return res.json();
     }
 
@@ -293,6 +297,7 @@
         const coords = `${originData.lng},${originData.lat};${destData.lng},${destData.lat}`;
         try {
             const res = await fetch(`${OSRM_URL}/${coords}?overview=full&geometries=polyline`);
+            if (!res.ok) throw new Error(`OSRM returned ${res.status}`);
             const data = await res.json();
 
             if (data.code === 'Ok' && data.routes.length > 0) {
