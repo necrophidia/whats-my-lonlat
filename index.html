@@ -1,88 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset=utf-8>
-    <meta name="viewport" content="width=620">
-    <title>HTML5 Demo: geolocation</title>
-    <link rel="stylesheet" href="css/geolocation.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What's My Lon/Lat?</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <section id="wrapper">
-        <header>
-          <h1>geolocation</h1>
-        </header>
+    <nav class="tabs">
+        <button class="tab active" data-tab="locate">My Location</button>
+        <button class="tab" data-tab="distance">Distance Calculator</button>
+    </nav>
 
-        <meta name="viewport" content="width=620" />
+    <main>
+        <!-- My Location Tab -->
+        <section id="locate" class="tab-content active">
+            <div class="card">
+                <h1>What's My Lon/Lat?</h1>
+                <p class="subtitle">Find your current coordinates using your browser's geolocation. Click the map or drag the marker to refine.</p>
+                <button id="locate-btn" class="btn primary">Find My Location</button>
+                <div id="locate-status" class="status" hidden></div>
+                <div id="locate-coords" class="coords" hidden>
+                    <div class="coord-group">
+                        <label>Latitude</label>
+                        <span id="lat-value" class="coord-value">—</span>
+                    </div>
+                    <div class="coord-group">
+                        <label>Longitude</label>
+                        <span id="lng-value" class="coord-value">—</span>
+                    </div>
+                    <div class="coord-group">
+                        <label>Accuracy</label>
+                        <span id="acc-value" class="coord-value">—</span>
+                    </div>
+                    <button id="copy-btn" class="btn small">Copy Coordinates</button>
+                </div>
+            </div>
+            <div id="locate-map" class="map-container"></div>
+        </section>
 
-        <script type="text/javascript" src="http://maps.google.com/maps/api/js?v=3.exp&sensor=false"></script>
-        <article>
-          <p>Finding your location: <span id="status">checking...</span></p>
-        </article>
+        <!-- Distance Calculator Tab -->
+        <section id="distance" class="tab-content">
+            <div class="card">
+                <h1>Distance Calculator</h1>
+                <p class="subtitle">Calculate the distance between two points on the map.</p>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="origin">Origin</label>
+                        <input id="origin" type="text" placeholder="Search for a place...">
+                        <ul id="origin-suggestions" class="suggestions" hidden></ul>
+                    </div>
+                    <div class="input-group">
+                        <label for="destination">Destination</label>
+                        <input id="destination" type="text" placeholder="Search for a place...">
+                        <ul id="destination-suggestions" class="suggestions" hidden></ul>
+                    </div>
+                    <button id="calc-btn" class="btn primary" disabled>Calculate</button>
+                </div>
+                <div id="distance-result" class="result" hidden>
+                    <div class="result-item">
+                        <label>Distance</label>
+                        <span id="dist-value" class="result-value">—</span>
+                    </div>
+                    <div class="result-item">
+                        <label>Duration</label>
+                        <span id="duration-value" class="result-value">—</span>
+                    </div>
+                    <div class="result-item">
+                        <label>Origin</label>
+                        <span id="origin-coords" class="result-value small">—</span>
+                    </div>
+                    <div class="result-item">
+                        <label>Destination</label>
+                        <span id="dest-coords" class="result-value small">—</span>
+                    </div>
+                </div>
+            </div>
+            <div id="distance-map" class="map-container"></div>
+        </section>
+    </main>
 
-        <script>
-            function success(position) {
-                var s = document.querySelector('#status');
+    <footer>
+        <p>Built with <a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a> & <a href="https://www.openstreetmap.org" target="_blank" rel="noopener">OpenStreetMap</a></p>
+    </footer>
 
-                if (s.className == 'success') {
-                    // not sure why we're hitting this twice in FF, I think it's to do with a cached result coming back    
-                    return;
-                }
-
-                s.innerHTML = "Your Location= Latitude: " + position.coords.latitude + ", Longitude: " + position.coords.longitude;
-                s.className = 'success';
-
-                var mapcanvas = document.createElement('div');
-                mapcanvas.id = 'mapcanvas';
-                mapcanvas.style.height = '400px';
-                mapcanvas.style.width = '560px';
-
-                document.querySelector('article').appendChild(mapcanvas);
-
-                var latlng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-                var myOptions = {
-                    zoom: 17,
-                    center: latlng,
-                    mapTypeControl: false,
-                    navigationControlOptions: { style: google.maps.NavigationControlStyle.SMALL },
-                    mapTypeId: google.maps.MapTypeId.ROADMAP
-                };
-                var map = new google.maps.Map(document.getElementById("mapcanvas"), myOptions);
-
-                var marker = new google.maps.Marker({
-                    position: latlng,
-                    map: map,
-                    title: "You are here! (at least within a " + position.coords.accuracy + " meter radius)"
-                });
-
-                function getDistance(lat1, lon1, lat2, lon2) {
-                    var R = 6371; // km
-                    var dLat = (lat2 - lat1).toRad();
-                    var dLon = (lon2 - lon1).toRad();
-                    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                            Math.cos(lat1.toRad()) * Math.cos(lat2.toRad()) *
-                            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-                    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-                    return R * c;
-                }
-
-                console.log();
-            }
-
-            function error(msg) {
-                var s = document.querySelector('#status');
-                s.innerHTML = typeof msg == 'string' ? msg : "failed";
-                s.className = 'fail';
-
-                // console.log(arguments);
-            }
-
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(success, error);
-            } else {
-                error('not supported');
-            }
-
-        </script>
-    </section>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
