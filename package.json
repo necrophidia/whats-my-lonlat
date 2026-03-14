@@ -1,0 +1,19 @@
+{
+  "name": "whats-my-lonlat",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Find your current coordinates and calculate distances between locations",
+  "scripts": {
+    "lint:html": "htmlhint \"*.html\"",
+    "lint:css": "stylelint \"css/**/*.css\"",
+    "lint:js": "eslint \"js/**/*.js\"",
+    "lint": "npm run lint:html && npm run lint:css && npm run lint:js"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "htmlhint": "^1.1.0",
+    "stylelint": "^16.0.0",
+    "stylelint-config-standard": "^37.0.0"
+  }
+}
