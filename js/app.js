@@ -206,7 +206,9 @@
             }
         });
         if (!res.ok) return [];
-        return res.json();
+        const data = await res.json();
+        if (!Array.isArray(data)) return [];
+        return data.filter(place => place.display_name && isFinite(parseFloat(place.lat)) && isFinite(parseFloat(place.lon)));
     }
 
     function setupAutocomplete(input, suggestionsList, onSelect) {
@@ -261,16 +263,36 @@
     function decodePolyline(encoded) {
         const points = [];
         let lat = 0, lng = 0, i = 0;
-        while (i < encoded.length) {
+
+        function nextValue() {
             let shift = 0, result = 0, byte;
-            do { byte = encoded.charCodeAt(i++) - 63; result |= (byte & 0x1f) << shift; shift += 5; } while (byte >= 0x20);
-            lat += (result & 1) ? ~(result >> 1) : (result >> 1);
-            shift = 0; result = 0;
-            do { byte = encoded.charCodeAt(i++) - 63; result |= (byte & 0x1f) << shift; shift += 5; } while (byte >= 0x20);
-            lng += (result & 1) ? ~(result >> 1) : (result >> 1);
+            do {
+                byte = encoded.charCodeAt(i++) - 63;
+                result |= (byte & 0x1f) << shift;
+                shift += 5;
+            } while (byte >= 0x20);
+            return (result & 1) ? ~(result >> 1) : (result >> 1);
+        }
+
+        while (i < encoded.length) {
+            lat += nextValue();
+            lng += nextValue();
             points.push([lat / 1e5, lng / 1e5]);
         }
         return points;
+    }
+
+    function showStraightLine(origin, dest) {
+        const dist = haversineDistance(origin.lat, origin.lng, dest.lat, dest.lng);
+        distValue.textContent = dist >= 1
+            ? `${dist.toFixed(1)} km (straight line)`
+            : `${Math.round(dist * 1000)} m (straight line)`;
+        durationValue.textContent = '—';
+
+        routeLine = L.polyline([
+            [origin.lat, origin.lng],
+            [dest.lat, dest.lng],
+        ], { color: '#3b82f6', weight: 3, dashArray: '8, 8' }).addTo(distanceMap);
     }
 
     calcBtn.addEventListener('click', async () => {
@@ -293,7 +315,7 @@
         distMarkers = [];
         if (routeLine) distanceMap.removeLayer(routeLine);
 
-        // Fetch route from OSRM
+        // Fetch route from OSRM, fall back to straight line
         const coords = `${originData.lng},${originData.lat};${destData.lng},${destData.lat}`;
         try {
             const res = await fetch(`${OSRM_URL}/${coords}?overview=full&geometries=polyline`);
@@ -309,7 +331,6 @@
                     : `${Math.round(route.distance)} m`;
                 durationValue.textContent = formatDuration(route.duration);
 
-                // Decode and draw the actual route
                 const routePoints = decodePolyline(route.geometry);
                 routeLine = L.polyline(routePoints, {
                     color: '#3b82f6',
@@ -317,30 +338,10 @@
                     opacity: 0.8,
                 }).addTo(distanceMap);
             } else {
-                // Fallback to straight line with haversine
-                const dist = haversineDistance(originData.lat, originData.lng, destData.lat, destData.lng);
-                distValue.textContent = dist >= 1
-                    ? `${dist.toFixed(1)} km (straight line)`
-                    : `${Math.round(dist * 1000)} m (straight line)`;
-                durationValue.textContent = '—';
-
-                routeLine = L.polyline([
-                    [originData.lat, originData.lng],
-                    [destData.lat, destData.lng],
-                ], { color: '#3b82f6', weight: 3, dashArray: '8, 8' }).addTo(distanceMap);
+                showStraightLine(originData, destData);
             }
         } catch {
-            // Fallback to straight line on network error
-            const dist = haversineDistance(originData.lat, originData.lng, destData.lat, destData.lng);
-            distValue.textContent = dist >= 1
-                ? `${dist.toFixed(1)} km (straight line)`
-                : `${Math.round(dist * 1000)} m (straight line)`;
-            durationValue.textContent = '—';
-
-            routeLine = L.polyline([
-                [originData.lat, originData.lng],
-                [destData.lat, destData.lng],
-            ], { color: '#3b82f6', weight: 3, dashArray: '8, 8' }).addTo(distanceMap);
+            showStraightLine(originData, destData);
         }
 
         distResult.hidden = false;
@@ -355,8 +356,7 @@
         distMarkers = [m1, m2];
 
         // Fit bounds
-        const bounds = routeLine.getBounds();
-        distanceMap.fitBounds(bounds, { padding: [50, 50] });
+        distanceMap.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
 
         calcBtn.disabled = false;
         calcBtn.textContent = 'Calculate';
