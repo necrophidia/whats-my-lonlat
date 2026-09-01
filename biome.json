@@ -1,0 +1,54 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "formatter": {
+    "enabled": false
+  },
+  "assist": {
+    "enabled": false
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended",
+      "correctness": {
+        "noUndeclaredVariables": "error",
+        "noUnusedVariables": "warn",
+        "noProcessGlobal": "error",
+        "noNodejsModules": "error",
+        "noGlobalDirnameFilename": "error"
+      },
+      "suspicious": {
+        "noConsole": "warn",
+        "noDoubleEquals": {
+          "level": "error",
+          "options": {
+            "ignoreNull": false
+          }
+        },
+        "noVar": "error"
+      },
+      "style": {
+        "useConst": "warn",
+        "noRestrictedGlobals": {
+          "level": "error",
+          "options": {
+            "deniedGlobals": {
+              "Buffer": "Node global; js/app.js runs in the browser.",
+              "module": "CommonJS global; js/app.js is a classic browser script.",
+              "exports": "CommonJS global; js/app.js is a classic browser script.",
+              "require": "CommonJS global; js/app.js is a classic browser script.",
+              "setImmediate": "Node global; use setTimeout in the browser.",
+              "clearImmediate": "Node global; use clearTimeout in the browser.",
+              "global": "Node global; use globalThis or window."
+            }
+          }
+        }
+      }
+    }
+  },
+  "javascript": {
+    "globals": [
+      "L"
+    ]
+  }
+}

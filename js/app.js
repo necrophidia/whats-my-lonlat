@@ -1,4 +1,5 @@
 (() => {
+    // biome-ignore lint/suspicious/noRedundantUseStrict: app.js is loaded as a classic script (see index.html), not a module, so this is required.
     'use strict';
 
     // --- Tab switching ---
@@ -9,8 +10,8 @@
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             const target = tab.dataset.tab;
-            tabs.forEach(t => t.classList.remove('active'));
-            tabContents.forEach(tc => tc.classList.remove('active'));
+            tabs.forEach(t => { t.classList.remove('active'); });
+            tabContents.forEach(tc => { tc.classList.remove('active'); });
             tab.classList.add('active');
             document.getElementById(target).classList.add('active');
 
@@ -208,7 +209,7 @@
         if (!res.ok) return [];
         const data = await res.json();
         if (!Array.isArray(data)) return [];
-        return data.filter(place => place.display_name && isFinite(parseFloat(place.lat)) && isFinite(parseFloat(place.lon)));
+        return data.filter(place => place.display_name && Number.isFinite(parseFloat(place.lat)) && Number.isFinite(parseFloat(place.lon)));
     }
 
     function setupAutocomplete(input, suggestionsList, onSelect) {
@@ -311,7 +312,7 @@
         }
 
         // Clear previous
-        distMarkers.forEach(m => distanceMap.removeLayer(m));
+        distMarkers.forEach(m => { distanceMap.removeLayer(m); });
         distMarkers = [];
         if (routeLine) distanceMap.removeLayer(routeLine);
 
