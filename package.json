@@ -6,14 +6,11 @@
   "description": "Find your current coordinates and calculate distances between locations",
   "scripts": {
     "lint:html": "htmlhint \"*.html\"",
-    "lint:css": "stylelint \"css/**/*.css\"",
-    "lint:js": "eslint \"js/**/*.js\"",
-    "lint": "npm run lint:html && npm run lint:css && npm run lint:js"
+    "lint:code": "biome lint js css",
+    "lint": "npm run lint:html && npm run lint:code"
   },
   "devDependencies": {
-    "eslint": "^10.8.0",
-    "htmlhint": "^1.1.0",
-    "stylelint": "^17.14.1",
-    "stylelint-config-standard": "^40.0.0"
+    "@biomejs/biome": "^2.5.11",
+    "htmlhint": "^1.1.0"
   }
 }
