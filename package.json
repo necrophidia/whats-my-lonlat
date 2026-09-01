@@ -2,7 +2,6 @@
   "name": "whats-my-lonlat",
   "version": "2.0.0",
   "private": true,
-  "type": "module",
   "description": "Find your current coordinates and calculate distances between locations",
   "scripts": {
     "lint:html": "htmlhint \"*.html\"",

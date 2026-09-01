@@ -1,4 +1,5 @@
 (() => {
+    // biome-ignore lint/suspicious/noRedundantUseStrict: app.js is loaded as a classic script (see index.html), not a module, so this is required.
     'use strict';
 
     // --- Tab switching ---
