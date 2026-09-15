@@ -9,7 +9,7 @@
     "lint": "npm run lint:html && npm run lint:code"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.12",
+    "@biomejs/biome": "^2.5.13",
     "htmlhint": "^1.1.0"
   }
 }
